@@ -93,9 +93,6 @@ void GraphAdaptation::computeContainmentGraphs(){
 */
 void GraphAdaptation::buildContainmentGraphAlgorithm(){
 
-	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> BoostGraph;
-	BoostGraph originalContainmentGraph;
-
 	/**
 	* compute containment graph
 	*/
@@ -107,7 +104,7 @@ void GraphAdaptation::buildContainmentGraphAlgorithm(){
 		if(sameLabelNeighbourIterator != hyperVertex->labelVertexList.end()){
 			for(vector<int>::iterator samelabelNeighbourIndex = sameLabelNeighbourIterator->second.begin(); samelabelNeighbourIndex != sameLabelNeighbourIterator->second.end(); samelabelNeighbourIndex++) {
 				if(isSyntacticContainment(hyperVertex->id, *samelabelNeighbourIndex)){
-					boost::add_edge (hyperVertex->id, *samelabelNeighbourIndex, originalContainmentGraph); 
+					outputContainmentGraphFile << "e " << hyperVertex->id << " " << *samelabelNeighbourIndex << std::endl;
 				}
 			}
 		}
@@ -118,85 +115,21 @@ void GraphAdaptation::buildContainmentGraphAlgorithm(){
 			map<int, vector<int>>::iterator _stepVertexIterator = hyperGraph->getVertexAddressByVertexId(t->v)->labelVertexList.find(hyperVertex->label);
 			if(_stepVertexIterator != hyperGraph->getVertexAddressByVertexId(t->v)->labelVertexList.end()) {
 				for(vector<int>::iterator samelabelNeighbourIndex = _stepVertexIterator->second.begin(); samelabelNeighbourIndex != _stepVertexIterator->second.end(); samelabelNeighbourIndex++){
-					if(hyperVertex->id != *samelabelNeighbourIndex && isSyntacticContainment(hyperVertex->id, *samelabelNeighbourIndex)){
-						boost::add_edge (hyperVertex->id, *samelabelNeighbourIndex, originalContainmentGraph); 
+					if (hyperGraph->edge(hyperVertex->id, *samelabelNeighbourIndex)) {
+						continue;
+					}
+					if (hyperVertex->id == *samelabelNeighbourIndex) {
+						continue;
+					}
+					if(isSyntacticContainment(hyperVertex->id, *samelabelNeighbourIndex)){
+						outputContainmentGraphFile << "e " << hyperVertex->id << " " << *samelabelNeighbourIndex << std::endl;
 					}
 				}
 			}
 		}
-
-		// release memory
-		//hyperVertex->labelVertexList.clear();
 	}
-	
-	computeTransitiveReduction(originalContainmentGraph);
-	
-	/*
-	* output the original containment graph. DO NOT DELETE
-	*/
-	/*BoostGraph::vertex_iterator vertexIt, vertexEnd;
-	BoostGraph::adjacency_iterator neighbourIt, neighbourEnd;
-	boost::tie(vertexIt, vertexEnd) = boost::vertices(originalContainmentGraph);
-
-	for (; vertexIt != vertexEnd; ++vertexIt) {
-		boost::tie(neighbourIt, neighbourEnd) = boost::adjacent_vertices(*vertexIt, originalContainmentGraph); 
-		for (; neighbourIt != neighbourEnd; ++neighbourIt) {
-			outputContainmentGraphFile<< "e " <<*vertexIt<<" "<<*neighbourIt<<std::endl;
-		}
-	}*/
 }
 
-
-void GraphAdaptation::computeTransitiveReduction(boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> & originalContainmentGraph){
-
-	typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> BoostGraph;
-	BoostGraph transitive_reduction_graph;
-	/**
-	* compute containment graph transitive reduction
-	*/
-	typedef boost::property_map<BoostGraph, boost::vertex_index_t>::type IndexMap;
-    IndexMap index = get(boost::vertex_index, originalContainmentGraph);
-
-	int * t_to_tr_map = new int[num_vertices(originalContainmentGraph) + 1];
-	int * tr_to_t_map = new int[num_vertices(originalContainmentGraph) + 1];
-	
-	if(num_vertices(originalContainmentGraph) == 0){
-		return ;
-	}
-	for(int i=0; i<num_vertices(originalContainmentGraph);i++) {
-		t_to_tr_map[i] = -1;
-		tr_to_t_map[i] = -1;
-	}
-	transitive_reduction(originalContainmentGraph, transitive_reduction_graph, t_to_tr_map, index);
-	// compute the tr_to_t map from t_to_tr map
-	for(int i=0; i<num_vertices(originalContainmentGraph);i++) {
-		for(int j=0; j<num_vertices(originalContainmentGraph);j++){
-			if(t_to_tr_map[j] == i) {
-				tr_to_t_map[i] = j;
-			}
-		}
-	}
-
-
-	/*
-	* output the transitive reduction
-	*/
-	BoostGraph::vertex_iterator vertexIt, vertexEnd;
-	BoostGraph::adjacency_iterator neighbourIt, neighbourEnd;
-	boost::tie(vertexIt, vertexEnd) = boost::vertices(transitive_reduction_graph);
-
-	for (; vertexIt != vertexEnd; ++vertexIt) { 
-
-		boost::tie(neighbourIt, neighbourEnd) = boost::adjacent_vertices(*vertexIt, transitive_reduction_graph); 
-		for (; neighbourIt != neighbourEnd; ++neighbourIt) {
-			outputContainmentGraphFile<< "e " <<tr_to_t_map[*vertexIt]<<" "<<tr_to_t_map[*neighbourIt]<<std::endl;
-		}
-	}
-
-	delete [] t_to_tr_map;
-	delete [] tr_to_t_map;
-
-}
 
 /**
 * v id label isCliqueFlag (vertex list) 
@@ -354,11 +287,8 @@ bool GraphAdaptation::isSyntacticContainment(int v, int u){
 				}
 			}
 		}
-	
 	}
-
 	return true;
-
 }
 
 

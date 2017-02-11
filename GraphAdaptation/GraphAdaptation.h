@@ -10,8 +10,6 @@
 #include <algorithm>
 #include"AdjacenceListsGRAPH_BOOST.h"
 #include"AdjacenceListsGraph.h"
-#include <boost/graph/adjacency_list.hpp> 
-#include <boost/graph/transitive_reduction.hpp>
 
 using namespace std;
 
@@ -37,7 +35,6 @@ private:
 public:
 	std::ofstream resultFile;
 	GraphAdaptation(bool digraph, char* inputFilename, char * outputHyperFilename, char * outputContainmentGraphName);
-	GraphAdaptation();
 	~GraphAdaptation();
 	/**
 	* @para inputFilename the graph filename
@@ -51,8 +48,6 @@ public:
 
 	void buildHyperGraphAlgorithm();
 	void buildContainmentGraphAlgorithm();
-
-	void computeTransitiveReduction(boost::adjacency_list<boost::vecS, boost::vecS, boost::directedS> &);
 
 	bool isSyntacticEquivalent(int v, int u);
 
