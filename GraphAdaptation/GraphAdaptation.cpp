@@ -91,7 +91,10 @@ void GraphAdaptation::computeContainmentGraphs(){
 /**
 * The containment graph shares the same set of data vertices with the hyper graph and is a transitive reduction of a DAG
 */
-void GraphAdaptation::buildContainmentGraphAlgorithm(){
+void GraphAdaptation::buildContainmentGraphAlgorithm()
+{
+	
+	set<std::pair<int, int>> containmentEdges;
 
 	/**
 	* compute containment graph
@@ -99,15 +102,17 @@ void GraphAdaptation::buildContainmentGraphAlgorithm(){
 	for(int hyperVertexIndex = 0; hyperVertexIndex < hyperGraph->getNumberOfVertexes(); hyperVertexIndex++){
 
 		AdjacenceListsGRAPH::Vertex* hyperVertex = hyperGraph -> getVertexAddressByVertexId(hyperVertexIndex);
+		
 		// iterate 1_step reacheability neighbours
 		map<int, vector<int>>::iterator sameLabelNeighbourIterator = hyperVertex->labelVertexList.find(hyperVertex -> label);
 		if(sameLabelNeighbourIterator != hyperVertex->labelVertexList.end()){
 			for(vector<int>::iterator samelabelNeighbourIndex = sameLabelNeighbourIterator->second.begin(); samelabelNeighbourIndex != sameLabelNeighbourIterator->second.end(); samelabelNeighbourIndex++) {
 				if(isSyntacticContainment(hyperVertex->id, *samelabelNeighbourIndex)){
-					outputContainmentGraphFile << "e " << hyperVertex->id << " " << *samelabelNeighbourIndex << std::endl;
+					containmentEdges.insert(std::pair<int, int>(hyperVertex->id, *samelabelNeighbourIndex));
 				}
 			}
 		}
+
 		// iterate 2_step reacheability neighbours
 		AdjacenceListsGRAPH::adjIterator adjIterator(hyperGraph, hyperVertex->id);
 		for(AdjacenceListsGRAPH::link t = adjIterator.begin();  !adjIterator.end(); t=adjIterator.next()) {
@@ -122,11 +127,18 @@ void GraphAdaptation::buildContainmentGraphAlgorithm(){
 						continue;
 					}
 					if(isSyntacticContainment(hyperVertex->id, *samelabelNeighbourIndex)){
-						outputContainmentGraphFile << "e " << hyperVertex->id << " " << *samelabelNeighbourIndex << std::endl;
+						containmentEdges.insert(std::pair<int, int>(hyperVertex->id, *samelabelNeighbourIndex));
 					}
 				}
 			}
 		}
+	}
+
+	// print the containment edges
+	for (set<std::pair<int, int>>::iterator scEdgeIter = containmentEdges.begin(); 
+		scEdgeIter != containmentEdges.end(); scEdgeIter++)
+	{
+		outputContainmentGraphFile << "e " << scEdgeIter->first << " " << scEdgeIter->second << std::endl;
 	}
 }
 
