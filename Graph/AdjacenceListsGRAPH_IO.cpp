@@ -53,10 +53,13 @@ void AdjacenceListsGRAPH_IO::loadGraphFromFile(std::ifstream & graphFile, std::v
 		}
 		// insert all the edges
 		do{
-			String_Utility::readIntegersFromString(line, integerValues);
-			if(*integerValues.begin() != *(integerValues.begin()+1)){
-				AdjacenceListsGRAPH::Edge edge =  AdjacenceListsGRAPH::Edge(*integerValues.begin(),*(integerValues.begin()+1),*(integerValues.begin()+2));
-				graph.insert(edge);
+			if (line.size() != 0)
+			{
+				String_Utility::readIntegersFromString(line, integerValues);
+				if (*integerValues.begin() != *(integerValues.begin() + 1)) {
+					AdjacenceListsGRAPH::Edge edge = AdjacenceListsGRAPH::Edge(*integerValues.begin(), *(integerValues.begin() + 1), *(integerValues.begin() + 2));
+					graph.insert(edge);
+				}
 			}
 		}while(getline (graphFile,line) && (*line.begin() == 'e'));
 		// insert the query graph into query list	
